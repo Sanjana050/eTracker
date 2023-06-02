@@ -2,12 +2,15 @@ const Sib = require('sib-api-v3-sdk');
 require('dotenv').config();
 const bcrypt=require('bcrypt');
 const saltRounds=100;
+const path=require('path')
 
-const API_K = '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';
+const API_K = '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';
 const User=require('../models/user')
 const forgotPass=require('../models/forgotpass')
 
 const uuid=require('uuid')
+
+
 
 exports.forgotpassword = async (req, res, next) => {
   try {
@@ -20,15 +23,28 @@ console.log(apiKey.apiKey)
     const tranEmailApi = new Sib.TransactionalEmailsApi();
     const email_id = req.body.email_id;
     let id;
-    const user= await User.findOne({where:{email:email_id}})
+    console.log("NEHAAAA in id")
+    const user= await User.findEmail(email_id)
     if(user){
    console.log("inside i")
      id=uuid.v4();
-   const pass=await  forgotPass.create({'id':id,'active':true,'userId':user.id})
-   if(!pass)
-   {
-    throw new Error();
-   }
+     let uid;
+      const userId= await User.findEmail(email_id).then((res)=>{
+        console.log(res);
+        uid=res._id;
+        console.log(res._id,"in 33");
+      })
+
+    console.log(uid,"in 38");
+     const forgotPas=new forgotPass("true",uid,email_id,id);
+     
+   await  forgotPas.save().then((res)=>{
+    console.log(res,"done")
+   }).catch(err=>{
+    console.log(err)
+   })
+   console.log("in 33")
+   
     // user.createForgotPassword({id,active:true}).catch((err)=>{
       console.log(email_id);
 
@@ -65,6 +81,10 @@ console.log(apiKey.apiKey)
     console.log("NEHAAAA cannot send")
    }
   } 
+  else
+  {
+    console.log("USER NOT FOUND")
+  }
 }
 catch (err) {
     console.log(err);
@@ -78,7 +98,8 @@ catch (err) {
 
 exports.resetPassword=async (req,res,next)=>{
   const id=req.params.id;
-  const user=await forgotPass.findOne({where:{id:id}});
+  console.log("101 in",id)
+  const user=await forgotPass.findByPassId(id);
   if(user)
   {
     
@@ -104,12 +125,13 @@ exports.updatePass = async (req, res, next) => {
     console.log(pass, id, "NEHAAAA in updatePsass");
 
     id = req.params.id.replace(/\\+$/, '');
+    console.log(id,"in 128")
     let userId;
-    const forPass = await forgotPass.findOne({ where: { id: id } });
+    const forPass = await forgotPass.findByPassId(id);
     userId = forPass.userId;
 
     console.log(userId, "forPass");
-    const user = await User.findOne({ where: { id: userId } });
+    const user = await User.findById(userId.toString())
     console.log("NEHAAA user", user);
 
     if (user) {
@@ -125,8 +147,9 @@ exports.updatePass = async (req, res, next) => {
                   console.log(err);
                   throw new Error(err);
               }
-              user.update({ password: hash }).then(() => {
-                  res.status(201).json({message: 'Successfuly update the new password'})
+              User.updateOnePass(hash,userId).then(() => {
+                 // res.status(201).json({message: 'Successfuly update the new password'})
+                 res.status(201).sendFile(path.join(__dirname,'../','views','loginpage.html'))
               })
           });
       });

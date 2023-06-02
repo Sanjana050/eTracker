@@ -23,8 +23,13 @@ const category=document.querySelector('#category').value;
 const response=await axios.post('http://localhost:3000/postexpense',{amount,description,category},{headers:{"token":token}});
 if(response.status===200)
 {
+  console.log('expense added in db')
+  const userId=response.data.decoded.id
+  const expenseId=response.data.id;
+  console.log('in line 27','userId->',userId,'expenseId->',expenseId)
 const div=document.createElement('div');
-div.setAttribute("id", `expense-${response.data.id}`);
+div.className="expenseListItem"
+div.setAttribute("id", `expense-${expenseId}`);
 div.appendChild(document.createTextNode(`amount:  ${amount}     description:  ${description}     category:  ${category}`));
 div.style.backgroundColor="lightgrey";
 
@@ -33,17 +38,23 @@ div.style.width="50rem"
 
 
 const button=document.createElement('button');
+button.classList.add('delbtnexpense')
 button.className="btn";
+
 
 button.style.backgroundColor="red"
 button.appendChild(document.createTextNode("Delete"));
+
 button.style.float="right"
 div.appendChild(button);
 
 expenselist.appendChild(div);
+console.log(expenseId,'line 52')
+ button.addEventListener('click', async(event)=>{
+  await deleteElement(expenseId,event)
+ loadexpense()
+ })
 
-button.addEventListener('click', (event)=>deleteElement(response.data.id,event));
-loadexpense();
 
 
 }
@@ -103,7 +114,7 @@ async function deleteElement(id,button)
       console.log("Hey babay")
     const div=button.target.parentElement;
     
-    console.log(id,"neha id");
+console.log(id,"neha id");
 console.log(id);
     const response=await axios.post(`http://localhost:3000/deleteExpense`,{expenseId:id},{headers:{"token":token}})
     if(response.status===200)
@@ -121,16 +132,19 @@ console.log(id);
 
 
 }
-async function loadexpense() {
+async function loadexpense(e) {
     try {
-      
-        console.log(token)
-        
-       
+      e.preventDefault();
+      const page=1;
+    console.log("ho from 139")
+
+    // await premiumuserfunction();
+
         let res=await  axios.get('http://localhost:3000/postlogintoken',{headers:{"token":token}})
 
         console.log(res,"response is axis");
-        const check=res.data.isPremiumUser
+        const check=res.data.isPremiumUser;
+        console.log(check,"line 147")
           if(check){
 
           console.log(res,"res");
@@ -147,7 +161,8 @@ async function loadexpense() {
        
        
 
-      const response = await axios.get('http://localhost:3000/getAllExpense',{headers:{"token":token}});
+      const response = await axios.get(`http://localhost:3000/getAllExpense?page=${page}`,{headers:{"token":token}});
+      console.log(response,"in line 165")
       if (response.status === 200) {
         expenselist.innerHTML = '';
         const expenses = response.data.expense;
@@ -180,6 +195,12 @@ console.log('in rxpense for xhecking')
           
          
         }
+        console.log(token,"138")
+        
+      await axios.get('/isPremiumUser',{headers:{"token":token}});
+      console.log(isp,'in 141');
+
+        
       } else {
         const div = document.createElement('div');
         div.appendChild(document.createTextNode(response.data.message));
@@ -201,12 +222,18 @@ console.log('in rxpense for xhecking')
         const token=localStorage.getItem('signupId');
         console.log('from local storage',token)
         let response=await axios.get('http://localhost:3000/postpremium',{headers:{"token":token}})
+        const orderid=response.data.orderid;
         console.log(response,"from postpremium",response.data.userId);
+
+
+        console.log('in 219',orderid)
+        
         var options={
             "key":response.data.key_id,
             "orderId":response.data.order.id,
             "handler":async function(response){
                 await axios.post('http://localhost:3000/updatetransactionstatus',{
+                    orderid:orderid,
                     order_id:options.orderId,
                     payment_id:response.razorpay_payment_id,
             },{headers:{"token":token}})
@@ -214,7 +241,7 @@ console.log('in rxpense for xhecking')
             console.log('preimum user')
             document.querySelector('#premium-btn').style.visibility="hidden";
             document.querySelector('#message').innerHTML="you are a premium user now"
-// document.getElementById('downloadExpense').style.visibility="visible"
+document.querySelector('#premiumleaderbtn').style.visibility="visible"
 document.getElementById('downloadExpense').style.display = "block";
 
 
@@ -263,7 +290,7 @@ async function loadleaders(){
 const token=localStorage.getItem("signUpId");
 const leaderBoardArray=await axios.get('http://localhost:3000/showLeaderBoard',{headers:{"token":token}});
 
-
+console.log(leaderBoardArray,"in 291")
 var leaderBoardElem=document.querySelector('.premium_users');
 
 leaderBoardArray.data.forEach((element)=>{
@@ -292,7 +319,7 @@ document.querySelector('.premium_users').style.visibility="visible"
         } 
         else if(response.status===500){
       const p=document.createElement('p');
-      p.appendChild(dovument.ctrateTextNode('not a premium user'));
+      p.appendChild(document.ctrateTextNode('not a premium user'));
       document.querySelector('#notpre').appendChild(p)
         }
         else {
@@ -315,10 +342,37 @@ document.querySelector('.premium_users').style.visibility="visible"
   
 
 
-
+// async function premiumuserfunction()
+// {
+//   try{
+  
+//   console.log("Neha from premiumuserfunction line 342")
+//   axios.get('http://localhost:3000/isPremiumUser', {headers:{"token":token}})
+//   .then((response) =>  {
+//     console.log(response,"hii from 350");
+//    console.log(response.data.message,response.status)
+//   if(response.status===200)
+//   {
+//     console.log(response.isPremiumUser,response.status,"hii stat")
+//   }
+//   else{
+//     console.log(response)
+//   }
+// }).catch(err=>{
+//     console.log(err)
+//   }) 
+   
+//   }
+//   catch(err)
+//   {
+//     console.log(err)
+//   }
+// }
 
 document.querySelector('#premium-btn').addEventListener('click',premium);
-window.addEventListener("DOMContentLoaded",loadexpense);
+window.addEventListener("DOMContentLoaded",loadexpense)
+
+
 
 
 expenseform.addEventListener('submit',expense);

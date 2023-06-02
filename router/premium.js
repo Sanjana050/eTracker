@@ -5,7 +5,7 @@ const premiumController=require('../controllers/premium');
 const authenticate=require('../middleware/auth');
 
 
-router.get('/downloadexpense',authenticate.authenticate,premiumController.downloadExpense)
+router.get('/downloadexpense',authenticate,premiumController.downloadExpense)
 router.get('/showLeaderBoard',premiumController.showLeaderBoard);
 
 module.exports=router;

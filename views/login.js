@@ -26,14 +26,14 @@ async function login(e)
     const password=document.querySelector('#password').value;
     
 
-    const response= await axios.post('http://localhost:3000/postlogin',{email,password}
-    );
+    const response= await axios.post('http://localhost:3000/postlogin',{email,password});
     
 
     if(response.status===200){
         console.log(response)
         
         localStorage.setItem('signupId',response.data.userId)
+        console.log(response.data.userId)
         
          location.href=`./expense.html?message:logged in succesfully&token=${response.data.userId}`
     }
@@ -66,6 +66,24 @@ link.appendChild(document.createTextNode('Signup'));
 
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 async function forgotemail(e){
     try{

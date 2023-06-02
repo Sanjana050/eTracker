@@ -7,75 +7,35 @@ const AWS=require('aws-sdk')
 
 exports.showLeaderBoard= async(req,res,next)=>{
 try{
-console.log('before leaderboard')
-// const leaderBoardArray=await User.findAll({attributes:['id','name', [sequelize.fn('sum', sequelize.col('Expense.amount')), 'totalExpense']],
-// include:[{
-//     model:Expense,
-//     attributes:[]
-// }],
+console.log('before leaderboard>>>>>>>>>>>>>>>>');
+let resarray;
+const leaderBoardArray = await User.find().then(async(res)=>{
 
-// group:[User.id],
-// order:[['totalExpense',"DESC"]]
-// });
+  
+  res = await  res.sort((a, b) => b.totalExpense - a.totalExpense);
 
-const leaderBoardArray = await User.findAll({
-    // attributes: [
-    //   'id',
-    //   'name',
-    //   [sequelize.fn('SUM', sequelize.col('expenses.amount')), 'totalExpense']
-    // ],
-    // include: [
-    //   {
-    //     model: Expense,
-    //     attributes: []
-    //   }
-    // ],
-    // group: ['User.id'],
-    order: [['totalExpense', 'DESC']]
-  });
+
+    
+
+    resarray=res;
+    console.log("before res",res,"after res")
+
+
+  
+ 
+  
+}).catch(err=>{
+  console.log(err)
+})
+
   
 
-console.log('after leaderboard')
+console.log('after leaderboard<<<<<<<<<<<<<<<<<<<<<<<<<<')
 
-console.log("users neha",leaderBoardArray)
-// const UserAgExpense = await Expense.findAll({
-//     attributes: [
-//       [sequelize.fn('sum', sequelize.col('amount')), 'totalExpense']
-//     ],
-//     group: ['userId']
-//   });
-  
-// console.log(expenses)
-// const UserAgExpense={};
-// expenses.forEach((expense)=>{
-//     if(UserAgExpense[expense.userId]){
-//         UserAgExpense[expense.userId]+=expense.amount;
-//     }
-//     else{
-//         UserAgExpense[expense.userId]=expense.amount;
-//     }
-// })
+console.log("users neha",resarray)
 
 
-
-// var userLeaderBoard=[];
-// await users.forEach((user)=>{
-//     userLeaderBoard.push({name:user.name,totalExpense:UserAgExpense[user.id]})
-// })
-
-
-// console.log(userLeaderBoard)
-// console.log(UserAgExpense);
-// console.log('sending')
-
-// const myArr=Object.entries(userLeaderBoard);
-//  myArr.sort((a,b)=>{
-//      a[1]-b[1];
-// })
-
-// console.log(myArr)
-
-res.status(200).json(leaderBoardArray)
+res.status(200).json(resarray)
 }
 catch(err){
 console.log(err);
@@ -83,9 +43,9 @@ console.log(err);
 }
 
  function uploadToS3(data,fileName){
-  const BUCKET_NAME='expensetrackerapp5';
-  const IAM_USER_KEY='AKIAS2QFH63ORT4UBLEI';
-  const IAM_USER_SECRET='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';
+  const BUCKET_NAME='expensetrackerapp12345';
+  const IAM_USER_KEY='AKIA6AZI7BT3BSFZU66E';
+  const IAM_USER_SECRET='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';
   
 let s3bucket=new AWS.S3({
   accessKeyId:IAM_USER_KEY,
@@ -124,7 +84,8 @@ exports.downloadExpense=async(req,res,next)=>{
   }
   console.log("NeHA",req.user);
   
-  const expenses=await Expense.findAll({where:{userId:req.user.id}})
+  console.log(req.user.id,"in 87",req.user)
+  const expenses=await Expense.findAll(req.user._id.toString());
   
     
   console.log(expenses);
